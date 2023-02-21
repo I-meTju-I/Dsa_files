@@ -8,7 +8,14 @@ typedef struct Node{
 }NODE;
 
 void search(NODE *root){
+    int val;
+    NODE *temp;
+    scanf("%d",&val);
 
+    temp = root;
+    if(temp->value == val){
+        printf("Node value: %d\nNode adress: %p\n",temp->value,temp);
+    }
 }
 
 void insert(NODE **root){
@@ -25,9 +32,6 @@ void insert(NODE **root){
         *root = temp;
     }
     p = *root;
-    if(){
-
-    }
 }
 
 void delete(NODE *root){
@@ -62,5 +66,4 @@ void main(){
             break;
         }
     }
-    //:D
 }
