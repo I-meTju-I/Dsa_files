@@ -80,7 +80,7 @@ int delete(int val,NODE **root){
             temp->left = temp->left->left;
             free(garb);
         }
-        //Case 3 WIP...
+        //Case 3 WIP... 
         return 1;
     }
     //Right child node
