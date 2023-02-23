@@ -64,52 +64,62 @@ int delete(int val,NODE **root){
         return 0;
     }
     //Left child node
-    if(temp->left->value == val){
-        //Case 1
-        if(temp->left->right == NULL && temp->left->left == NULL){
-            free(temp->left);
-            temp->left = NULL;
+    if(temp->left != NULL){
+        if(temp->left->value == val){
+            //Case 1
+            if(temp->left->right == NULL && temp->left->left == NULL){
+                free(temp->left);
+                temp->left = NULL;
+                return 1;
+            }
+            //Case 2
+            if(temp->left->right != NULL){
+                garb = temp->left;
+                temp->left = temp->left->right;
+                free(garb);
+                return 1;
+            }else if(temp->left->left != NULL){
+                garb = temp->left;
+                temp->left = temp->left->left;
+                free(garb);
+                return 1;
+            }
+            //Case 3 WIP...
+            return 1;
         }
-        //Case 2
-        if(temp->left->right != NULL){
-            garb = temp->left;
-            temp->left = temp->left->right;
-            free(garb);
-        }else if(temp->left->left != NULL){
-            garb = temp->left;
-            temp->left = temp->left->left;
-            free(garb);
-        }
-        //Case 3 WIP...
-        return 1;
     }
     //Right child node
-    if(temp->right->value == val){
-        //Case 1
-        if(temp->right->right == NULL && temp->right->left == NULL){
-            free(temp->right);
-            temp->right = NULL;
+    if(temp->right != NULL){
+        if(temp->right->value == val){
+            //Case 1
+            if(temp->right->right == NULL && temp->right->left == NULL){
+                free(temp->right);
+                temp->right = NULL;
+                return 1;
+            }
+            //Case 2
+            if(temp->right->right != NULL){
+                garb = temp->right;
+                temp->right = temp->right->right;
+                free(garb);
+                return 1;
+            }else if(temp->right->left != NULL){
+                garb = temp->right;
+                temp->right = temp->right->left;
+                free(garb);
+                return 1;
+            }
+            //Case 3 WIP...
+            return 1;
         }
-        //Case 2
-        if(temp->right->right != NULL){
-            garb = temp->right;
-            temp->right = temp->right->right;
-            free(garb);
-        }else if(temp->right->left != NULL){
-            garb = temp->right;
-            temp->right = temp->right->left;
-            free(garb);
-        }
-        //Case 3 WIP...
-        return 1;
     }
+
     if(val < temp->value){
         delete(val,&temp->left);
     }
     if(val > temp->value){
         delete(val,&temp->right);
     }
-
 }
 
 int create(int val,NODE **root){
