@@ -3,6 +3,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
+#define COUNT 10
 
 typedef struct node{
     int value;
@@ -45,6 +46,10 @@ int insert(int val,NODE **root){
     }
 
     temp = *root;
+    if(val == temp->value){
+        //printf("Node already exist\n");
+        return 0;
+    }
     if(val < temp->value){
         insert(val,&temp->left);
     }
@@ -127,15 +132,29 @@ int create(int val,NODE **root){
     srand(time(0));
     for(int i = 0;i < val;i++){
         number = rand() % 100;
+        //Printing any output to terminal slows code significantly, do not use in final form
         printf("Creating node with number.. %d\n",number);
         insert(number,root);
     }
 }
 
+void print_tree(NODE *root, int level){
+    if (root == NULL)
+            return;
+    for (int i = 0; i < level; i++)
+            printf(i == level - 1 ? "|-" : "  ");
+    printf("%d\n", root->value);
+    print_tree(root->right, level + 1);
+    print_tree(root->left, level + 1);
+}
+
+
 void main(){
     NODE *root = NULL;
     int val;
     char input;
+    clock_t start,end;
+    double cpu_time;
 
     printf("Select your operation - s = search, c = create, i = insert, d = delete, q = quit: ");
     scanf("%c",&input);
@@ -145,12 +164,20 @@ void main(){
         case 's':
             printf("Value you wish to search for: ");
             scanf("%d",&val);
+            start = clock();
             search(val,root);
+            end = clock();
+            cpu_time = (double)(end - start)/CLOCKS_PER_SEC;
+            printf("Time taken: %lf sec.",cpu_time);
             break;
         case 'c':
             printf("Number of new nodes: ");
             scanf("%d",&val);
+            start = clock();
             create(val,&root);
+            end = clock();
+            cpu_time = (double)(end - start)/CLOCKS_PER_SEC;
+            printf("Time taken: %lf sec.",cpu_time);
             break;
         case 'd':
             printf("Value you wish to delete: ");
@@ -162,10 +189,13 @@ void main(){
             scanf("%d",&val);
             insert(val,&root);
             break;
+        case 'p':
+            printf("Printing tree...\n");
+            print_tree(root,0);
         default:
             break;
         }
-        printf("Your operation? s = search, c = create, i = insert, d = delete, q = quit: ");
+        printf("Your operation? s = search, c = create, i = insert, d = delete, p = print, q = quit: ");
         scanf(" %c",&input);
     }
     printf("\nQuitting...\n");
