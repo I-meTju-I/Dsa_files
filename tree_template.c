@@ -45,12 +45,12 @@ int insert(int val,NODE **root){
     NODE *temp;
     NODE *new;
 
-    new = (NODE *)malloc(sizeof(NODE));
-    new->value = val;
-    new->left = NULL;
-    new->right = NULL;
-
     if(*root == NULL){
+        new = (NODE *)malloc(sizeof(NODE));
+        new->value = val;
+        new->left = NULL;
+        new->right = NULL;
+
         *root = new;
         return 1;
     }
