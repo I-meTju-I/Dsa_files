@@ -1,14 +1,16 @@
 //Tree template without self balancing coded 
 //|-meTju-|
+
+//Printing any output to terminal slows code significantly, do not use printf with //X if you want much better performance 
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
-#define COUNT 10
 
 typedef struct node{
     int value;
     struct node *left;
     struct node *right;
+    struct node *parent;
 }NODE;
 
 int min_right(NODE *root){
@@ -17,7 +19,6 @@ int min_right(NODE *root){
     while(temp->left != NULL){
         temp = temp->left;
     }
-    //printf("Value: %d",temp->value);
     return temp->value;
 }
 
@@ -41,7 +42,7 @@ int search(int val,NODE *root){
     }
 }
 
-int insert(int val,NODE **root){
+int insert(int val,NODE **root,NODE *par){
     NODE *temp;
     NODE *new;
 
@@ -50,6 +51,8 @@ int insert(int val,NODE **root){
         new->value = val;
         new->left = NULL;
         new->right = NULL;
+        new->parent = par;
+
 
         *root = new;
         return 1;
@@ -57,18 +60,17 @@ int insert(int val,NODE **root){
 
     temp = *root;
     if(val == temp->value){
-        //printf("Node already exist\n");
+        printf("Node already exist\n"); //X
         return 0;
     }
     if(val < temp->value){
-        insert(val,&temp->left);
+        insert(val,&temp->left,temp);
     }
     if(val > temp->value){
-        insert(val,&temp->right);
+        insert(val,&temp->right,temp);
     }
 }
 
-//WIP
 int delete(int val,NODE **root){
     NODE *temp;
     NODE *garb;
@@ -78,63 +80,49 @@ int delete(int val,NODE **root){
     if(temp == NULL){
         printf("No node with value [%d] is in tree\n",val);
         return 0;
-    }
-    //Left child node
-    if(temp->left != NULL){
-        if(temp->left->value == val){
-            //Case 1
-            if(temp->left->right == NULL && temp->left->left == NULL){
-                free(temp->left);
-                temp->left = NULL;
-                return 1;
+    }else if(temp->value == val){
+        //Case 1
+        if(temp->right == NULL && temp->left == NULL){
+            if(temp->parent == NULL){
+                *root = NULL;
+            }else if(temp->parent->left == temp){
+                temp->parent->left = NULL;
+            }else if(temp->parent->right == temp){
+                temp->parent->right = NULL;
             }
-            //Case 2
-            if(temp->left->right != NULL && temp->left->left == NULL){
-                garb = temp->left;
-                temp->left = temp->left->right;
-                free(garb);
-                return 1;
-            }else if(temp->left->left != NULL && temp->left->right == NULL){
-                garb = temp->left;
-                temp->left = temp->left->left;
-                free(garb);
-                return 1;
-            }else{
-                //Case 3 WIP...
-                temp_val = min_right(temp->left);
-                delete(temp_val,&temp);
-                temp->left->value = temp_val;
-                return 1;
+            free(temp);
+            return 1;
+        //Case 2
+        }else if(temp->right != NULL && temp->left == NULL){
+            garb = temp->right;
+            if(temp->parent == NULL){
+                *root = temp->right;
+                temp->right->parent = NULL;
+            }else if(temp->parent->left == temp){
+                temp->parent->left = garb;
+            }else if(temp->parent->right == temp){
+                temp->parent->right = garb;
             }
-        }
-    }
-    //Right child node
-    if(temp->right != NULL){
-        if(temp->right->value == val){
-            //Case 1
-            if(temp->right->right == NULL && temp->right->left == NULL){
-                free(temp->right);
-                temp->right = NULL;
-                return 1;
+            free(temp);
+            return 1;
+        }else if(temp->right == NULL && temp->left != NULL){
+            garb = temp->left;
+            if(temp->parent == NULL){
+                *root = temp->left;
+                temp->left->parent = NULL;
+            }else if(temp->parent->left == temp){
+                temp->parent->left = garb;
+            }else if(temp->parent->right == temp){
+                temp->parent->right = garb;
             }
-            //Case 2
-            if(temp->right->right != NULL && temp->right->left == NULL){
-                garb = temp->right;
-                temp->right = temp->right->right;
-                free(garb);
-                return 1;
-            }else if(temp->right->left != NULL && temp->right->right == NULL){
-                garb = temp->right;
-                temp->right = temp->right->left;
-                free(garb);
-                return 1;
-            }else{
-                //Case 3 WIP...
-                temp_val = min_right(temp->right);
-                delete(temp_val,&temp);
-                temp->right->value = temp_val;
-                return 1;
-            }
+            free(temp);
+            return 1;
+        //Case 3
+        }else{
+            temp_val = min_right(temp);
+            delete(temp_val,&temp);
+            temp->value = temp_val;
+            return 1;
         }
     }
 
@@ -150,10 +138,9 @@ int create(int val,NODE **root){
     int number;
     srand(time(0));
     for(int i = 0;i < val;i++){
-        number = rand() % 100;
-        //Printing any output to terminal slows code significantly, do not use in final form
-        //printf("Creating node with number.. %d\n",number);
-        insert(number,root);
+        number = rand() % val + 1;
+        printf("Creating node with number.. %d\n",number); //X
+        insert(number,root,NULL);
     }
 }
 
@@ -175,7 +162,7 @@ void main(){
     clock_t start,end;
     double cpu_time;
 
-    printf("Select your operation - s = search, c = create, i = insert, d = delete, q = quit: ");
+    printf("Select your operation - s = search, c = create, i = insert, d = delete, p = print, q = quit: ");
     scanf("%c",&input);
 
     while(input != 'q'){
@@ -206,7 +193,7 @@ void main(){
         case 'i':
             printf("Value of new node: ");
             scanf("%d",&val);
-            insert(val,&root);
+            insert(val,&root,NULL);
             break;
         case 'p':
             printf("Printing tree...\n");
@@ -214,7 +201,7 @@ void main(){
         default:
             break;
         }
-        printf("Your operation? s = search, c = create, i = insert, d = delete, p = print, q = quit: ");
+        printf("Select your operation - s = search, c = create, i = insert, d = delete, p = print, q = quit: ");
         scanf(" %c",&input);
     }
     printf("\nQuitting...\n");
