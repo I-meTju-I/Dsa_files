@@ -53,6 +53,7 @@ int insert(int val,NODE **root,NODE *par){
         new->right = NULL;
         new->parent = par;
 
+
         *root = new;
         return 1;
     }
