@@ -3,13 +3,23 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
-#define COUNT 10
 
 typedef struct node{
     int value;
     struct node *left;
     struct node *right;
+    struct node *parent;
 }NODE;
+
+int min_right(NODE *root){
+    NODE* temp;
+    temp = root->right;
+    while(temp->left != NULL){
+        temp = temp->left;
+    }
+    //printf("Value: %d",temp->value);
+    return temp->value;
+}
 
 int search(int val,NODE *root){
     NODE *temp;
@@ -62,6 +72,7 @@ int insert(int val,NODE **root){
 int delete(int val,NODE **root){
     NODE *temp;
     NODE *garb;
+    int temp_val;
 
     temp = *root;
     if(temp == NULL){
@@ -78,19 +89,23 @@ int delete(int val,NODE **root){
                 return 1;
             }
             //Case 2
-            if(temp->left->right != NULL){
+            if(temp->left->right != NULL && temp->left->left == NULL){
                 garb = temp->left;
                 temp->left = temp->left->right;
                 free(garb);
                 return 1;
-            }else if(temp->left->left != NULL){
+            }else if(temp->left->left != NULL && temp->left->right == NULL){
                 garb = temp->left;
                 temp->left = temp->left->left;
                 free(garb);
                 return 1;
+            }else{
+                //Case 3 WIP...
+                temp_val = min_right(temp->left);
+                delete(temp_val,&temp);
+                temp->left->value = temp_val;
+                return 1;
             }
-            //Case 3 WIP...
-            return 1;
         }
     }
     //Right child node
@@ -103,19 +118,23 @@ int delete(int val,NODE **root){
                 return 1;
             }
             //Case 2
-            if(temp->right->right != NULL){
+            if(temp->right->right != NULL && temp->right->left == NULL){
                 garb = temp->right;
                 temp->right = temp->right->right;
                 free(garb);
                 return 1;
-            }else if(temp->right->left != NULL){
+            }else if(temp->right->left != NULL && temp->right->right == NULL){
                 garb = temp->right;
                 temp->right = temp->right->left;
                 free(garb);
                 return 1;
+            }else{
+                //Case 3 WIP...
+                temp_val = min_right(temp->right);
+                delete(temp_val,&temp);
+                temp->right->value = temp_val;
+                return 1;
             }
-            //Case 3 WIP...
-            return 1;
         }
     }
 
@@ -133,7 +152,7 @@ int create(int val,NODE **root){
     for(int i = 0;i < val;i++){
         number = rand() % 100;
         //Printing any output to terminal slows code significantly, do not use in final form
-        printf("Creating node with number.. %d\n",number);
+        //printf("Creating node with number.. %d\n",number);
         insert(number,root);
     }
 }
@@ -168,7 +187,7 @@ void main(){
             search(val,root);
             end = clock();
             cpu_time = (double)(end - start)/CLOCKS_PER_SEC;
-            printf("Time taken: %lf sec.",cpu_time);
+            printf("Time taken: %lf sec.\n",cpu_time);
             break;
         case 'c':
             printf("Number of new nodes: ");
@@ -177,7 +196,7 @@ void main(){
             create(val,&root);
             end = clock();
             cpu_time = (double)(end - start)/CLOCKS_PER_SEC;
-            printf("Time taken: %lf sec.",cpu_time);
+            printf("Time taken: %lf sec.\n",cpu_time);
             break;
         case 'd':
             printf("Value you wish to delete: ");
