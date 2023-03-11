@@ -9,10 +9,11 @@
 
 typedef struct node{
     int value;
-    struct node *left;
-    struct node *right;
-    struct node *parent;
+    struct node *left, *right, *parent;
+    int height;
 }NODE;
+
+NODE **top_root = NULL;
 
 int min_right(NODE *root){
     NODE* temp;
@@ -23,86 +24,89 @@ int min_right(NODE *root){
     return temp->value;
 }
 
-int height(NODE *root){
+int getHeight(NODE *root){
     if(root == NULL){
         return 0;
     }
-    return 1 + max(height(root->left),height(root->right));
+    return 1 + max(getHeight(root->left),getHeight(root->right));
 }
 
-int balance(NODE *root){
-    return height(root->left) - height(root->right);
-}
-
-void rotation(NODE *root){
-    NODE* temp;
-    NODE* temp_root;
-    int bal = balance(root);
-    if(bal > 1){
-        if(balance(root->left)<= -1){
-            //R
-            temp = root->left;
-            if(root->left->right != NULL){
-                root->left = root->left->right;
-                root->left->parent = root;
-            }else{
-                root->left = NULL;
-            }
-            if(root->parent == NULL){
-                temp_root = root;
-                root = temp;
-                root->parent = NULL;
-                temp->right = temp_root;
-                temp_root->parent = temp;
-                return;
-            }else if(root == root->parent->left){
-                root->parent->left = temp;
-            }else{
-                root->parent->right = temp;
-            }
-            temp->right = root;
-            root->parent = temp;
-
-        }else if(balance(root->left) >= 1){
-            //RR
-        }
-    }else if(bal < -1){
-        if(balance(root->right) <= -1){
-            temp = root->right;
-            //L
-            if(root->right->left != NULL){
-                root->right = root->right->left;
-                root->right->parent = root;
-            }else{
-                root->right = NULL;
-            }
-            if(root->parent == NULL){
-                temp_root = root;
-                root = temp;
-                root->parent = NULL;
-                root->left = temp_root;
-                root->left->parent = temp;
-                return;
-            }else if(root == root->parent->left){
-                root->parent->left = temp;
-            }else{
-                root->parent->right = temp;
-            }
-            temp->left = root;
-            root->parent = temp;
-        
-        }else if(balance(root->right) >= 1){
-            //LR
-        }
+int getBalance(NODE *root){
+    if (root == NULL){
+        return 0;
     }
+    return getHeight(root->left) - getHeight(root->right);
 }
 
-void rotate(NODE* root){
-    NODE* p;
-    p = root;
-    while(p != NULL){
-        rotation(p);
-        p = p->parent;
+void left_rotate(NODE *root){
+    NODE* temp;
+    temp = root->right;
+    if(root->right->left != NULL){
+        root->right = root->right->left;
+        root->right->parent = root;
+    }else{
+        root->right = NULL;
+    }
+    if(root->parent == NULL){
+        *top_root = temp;
+        temp->parent = NULL;
+    }else if(root == root->parent->left){
+        root->parent->left = temp;
+    }else{
+        root->parent->right = temp;
+    }
+    temp->parent = root->parent;
+    temp->left = root;
+    root->parent = temp;
+
+    root->height = getHeight(root);
+    temp->height = getHeight(temp);
+}
+
+void right_rotate(NODE *root){
+    NODE* temp;
+    temp = root->left;
+    if(root->left->right != NULL){
+        root->left = root->left->right;
+        root->left->parent = root;
+    }else{
+        root->left = NULL;
+    }
+    if(root->parent == NULL){
+        *top_root = temp;
+        temp->parent = NULL;
+    }else if(root == root->parent->left){
+        root->parent->left = temp;
+    }else{
+        root->parent->right = temp;
+    }
+    temp->parent = root->parent;
+    temp->right = root;
+    root->parent = temp;
+
+    root->height = getHeight(root);
+    temp->height = getHeight(temp);
+}
+
+void rotate(NODE *temp,int val){
+    int balance;
+    temp->height = getHeight(temp);
+    balance = getBalance(temp);
+
+    if(balance > 1){
+        if(val < temp->left->value){
+            right_rotate(temp);
+        }else if(val > temp->left->value){
+            left_rotate(temp->left);
+            right_rotate(temp);
+        }
+    }else if(balance < -1){
+        if(val > temp->right->value){
+            left_rotate(temp);
+        }else if(val < temp->right->value){
+            right_rotate(temp->right);
+            left_rotate(temp);
+        }
     }
 }
 
@@ -136,10 +140,9 @@ int insert(int val,NODE **root,NODE *par){
         new->left = NULL;
         new->right = NULL;
         new->parent = par;
-
+        new->height = 1;
 
         *root = new;
-        rotate(*root);
         return 1;
     }
 
@@ -154,12 +157,13 @@ int insert(int val,NODE **root,NODE *par){
     if(val > temp->value){
         insert(val,&temp->right,temp);
     }
+
+    rotate(temp,val);
 }
 
 int delete(int val,NODE **root){
     NODE *temp;
     NODE *garb;
-    NODE *parent;
     int temp_val;
 
     temp = *root;
@@ -177,7 +181,6 @@ int delete(int val,NODE **root){
                 temp->parent->right = NULL;
             }
             free(temp);
-            rotate(parent);
             return 1;
         //Case 2
         }else if(temp->right != NULL && temp->left == NULL){
@@ -191,7 +194,6 @@ int delete(int val,NODE **root){
                 temp->parent->right = garb;
             }
             free(temp);
-            rotate(parent);
             return 1;
         }else if(temp->right == NULL && temp->left != NULL){
             garb = temp->left;
@@ -204,14 +206,12 @@ int delete(int val,NODE **root){
                 temp->parent->right = garb;
             }
             free(temp);
-            rotate(parent);
             return 1;
         //Case 3
         }else{
             temp_val = min_right(temp);
             delete(temp_val,&temp);
             temp->value = temp_val;
-            rotate(parent);
             return 1;
         }
     }
@@ -222,6 +222,8 @@ int delete(int val,NODE **root){
     if(val > temp->value){
         delete(val,&temp->right);
     }
+
+    rotate(temp,val);
 }
 
 int create(int val,NODE **root){
@@ -251,11 +253,13 @@ void main(){
     char input;
     clock_t start,end;
     double cpu_time;
+    top_root = &root;
 
     printf("Select your operation - s = search, c = create, i = insert, d = delete, p = print, q = quit: ");
     scanf("%c",&input);
 
     while(input != 'q'){
+        //printf("Current root and top_root: %p %p ",root,*top_root);
         switch (input){
         case 's':
             printf("Value you wish to search for: ");
@@ -274,8 +278,8 @@ void main(){
             end = clock();
             cpu_time = (double)(end - start)/CLOCKS_PER_SEC;
             printf("Time taken: %lf sec.\n",cpu_time);
-            printf("Height of root is: %d\n",height(root));
-            printf("Balance of root is: %d\n",balance(root));
+            printf("Height of root is: %d\n",getHeight(root));
+            printf("Balance of root is: %d\n",getBalance(root));
             break;
         case 'd':
             printf("Value you wish to delete: ");
@@ -285,7 +289,11 @@ void main(){
         case 'i':
             printf("Value of new node: ");
             scanf("%d",&val);
+            start = clock();
             insert(val,&root,NULL);
+            end = clock();
+            cpu_time = (double)(end - start)/CLOCKS_PER_SEC;
+            printf("Time taken: %lf sec.\n",cpu_time);
             break;
         case 'p':
             printf("Printing tree...\n");
