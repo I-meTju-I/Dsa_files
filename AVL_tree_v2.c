@@ -1,6 +1,6 @@
-//AVL tree implementation
+//AVL tree
 //|-meTju-|
-
+//This version needs more testing because its slower
 //Printing any output to terminal slows code significantly, do not use printf with //X if you want much better performance 
 #include<stdio.h>
 #include<stdlib.h>
@@ -10,11 +10,13 @@
 typedef struct node{
     int value;
     struct node *left, *right, *parent;
-    int height;
+    int height;     //Implementation with height stored inside NODE
 }NODE;
 
+//Global variable with root pointer
 NODE **true_root = NULL;
 
+//Function to find min value from right subtree when using delete()
 int min_right(NODE *root){
     NODE* temp;
     temp = root->right;
@@ -24,20 +26,23 @@ int min_right(NODE *root){
     return temp->value;
 }
 
-int getHeight(NODE *root){
+//Gets height of right and left subtrees, than returns max + 1
+int get_height(NODE *root){
     if(root == NULL){
         return 0;
     }
-    return 1 + max(getHeight(root->left),getHeight(root->right));
+    return 1 + max(get_height(root->left),get_height(root->right));
 }
 
-int getBalance(NODE *root){
+//Gets balance by using formula H[left subtree] - H[right subtree]
+int get_balance(NODE *root){
     if (root == NULL){
         return 0;
     }
-    return getHeight(root->left) - getHeight(root->right);
+    return get_height(root->left) - get_height(root->right);
 }
 
+//Rotation functions
 void left_rotate(NODE *root){
     NODE* temp;
     temp = root->right;
@@ -59,8 +64,8 @@ void left_rotate(NODE *root){
     temp->left = root;
     root->parent = temp;
 
-    root->height = getHeight(root);
-    temp->height = getHeight(temp);
+    root->height = get_height(root);
+    temp->height = get_height(temp);
 }
 
 void right_rotate(NODE *root){
@@ -84,14 +89,17 @@ void right_rotate(NODE *root){
     temp->right = root;
     root->parent = temp;
 
-    root->height = getHeight(root);
-    temp->height = getHeight(temp);
+    root->height = get_height(root);
+    temp->height = get_height(temp);
 }
 
+//Function that is making rotations by using logic
+//Balance factor can be from interval <-1,1>
+//anything outside of it must be rotated
 void rotate(NODE *temp,int val){
     int balance;
-    temp->height = getHeight(temp);
-    balance = getBalance(temp);
+    temp->height = get_height(temp);
+    balance = get_balance(temp);
 
     if(balance > 1){
         if(val < temp->left->value){
@@ -161,6 +169,8 @@ int insert(int val,NODE **root,NODE *par){
     rotate(temp,val);
 }
 
+//Delete function using complicated logic to delete right 
+//nodes and making sure pointers are set right
 int delete(int val,NODE **root){
     NODE *temp;
     NODE *garb;
@@ -226,6 +236,7 @@ int delete(int val,NODE **root){
     rotate(temp,val);
 }
 
+//Cycles insert() with random values
 int create(int val,NODE **root){
     int number;
     srand(time(0));
@@ -255,7 +266,7 @@ void main(){
     double cpu_time;
     true_root = &root;
 
-    printf("Select your operation - s = search, c = create, i = insert, d = delete, p = print, q = quit: ");
+    printf("Select your operation - (s)earch, (c)reate, (i)nsert, (d)elete, (p)rint, (q)uit: ");
     scanf("%c",&input);
 
     while(input != 'q'){
@@ -278,8 +289,8 @@ void main(){
             end = clock();
             cpu_time = (double)(end - start)/CLOCKS_PER_SEC;
             printf("Time taken: %lf sec.\n",cpu_time);
-            printf("Height of root is: %d\n",getHeight(root));
-            printf("Balance of root is: %d\n",getBalance(root));
+            printf("Height of root is: %d\n",get_height(root));
+            printf("Balance of root is: %d\n",get_balance(root));
             break;
         case 'd':
             printf("Value you wish to delete: ");
@@ -301,7 +312,7 @@ void main(){
         default:
             break;
         }
-        printf("Select your operation - s = search, c = create, i = insert, d = delete, p = print, q = quit: ");
+        printf("Select your operation - (s)earch, (c)reate, (i)nsert, (d)elete, (p)rint, (q)uit: ");
         scanf(" %c",&input);
     }
     printf("\nQuitting...\n");

@@ -1,6 +1,6 @@
-//AVL tree implementation
+//AVL tree
 //|-meTju-|
-
+//This version needs more testing because its still slow and unreliable
 //Printing any output to terminal slows code significantly, do not use printf with //X if you want much better performance 
 #include<stdio.h>
 #include<stdlib.h>
@@ -9,13 +9,13 @@
 
 typedef struct node{
     int value;
-    struct node *left;
-    struct node *right;
-    struct node *parent;
+    struct node *left, *right, *parent;
 }NODE;
 
+//Global variable with root pointer
 NODE **top_root = NULL;
 
+//Function to find min value from right subtree when using delete()
 int min_right(NODE *root){
     NODE* temp;
     temp = root->right;
@@ -25,17 +25,20 @@ int min_right(NODE *root){
     return temp->value;
 }
 
-int height(NODE *root){
+//Gets height of right and left subtrees, than returns max + 1
+int get_height(NODE *root){
     if(root == NULL){
         return 0;
     }
-    return 1 + max(height(root->left),height(root->right));
+    return 1 + max(get_height(root->left),get_height(root->right));
 }
 
-int balance(NODE *root){
-    return height(root->left) - height(root->right);
+//Gets balance by using formula H[left subtree] - H[right subtree]
+int get_balace(NODE *root){
+    return get_height(root->left) - get_height(root->right);
 }
 
+//Rotation functions
 void left_rotate(NODE *root){
     NODE* temp;
     temp = root->right;
@@ -80,26 +83,31 @@ void right_rotate(NODE *root){
     root->parent = temp;
 }
 
+//Function that is making rotations by using logic
+//Balance factor can be from interval <-1,1>
+//anything outside of it must be rotated
 void rotation(NODE *root){
     NODE* temp;
-    int bal = balance(root);
-    if(bal > 1){
-        if(balance(root->left) >= 1){
+    int balance = get_balace(root);
+    if(balance > 1){
+        if(get_balace(root->left) >= 1){
             right_rotate(root);
-        }else if(balance(root->left) <= -1){
+        }else if(get_balace(root->left) <= -1){
             left_rotate(root->left);
             right_rotate(root);
         }
-    }else if(bal < -1){
-        if(balance(root->right) <= -1){
+    }else if(balance < -1){
+        if(get_balace(root->right) <= -1){
             left_rotate(root);
-        }else if(balance(root->right) >= 1){
+        }else if(get_balace(root->right) >= 1){
             right_rotate(root->right);
             left_rotate(root);
         }
     }
 }
 
+//Function that is iterating from initial NODE to root NODE
+//to make sure every NODE is in balance
 void rotate(NODE* root){
     NODE* p;
     p = root;
@@ -159,6 +167,8 @@ int insert(int val,NODE **root,NODE *par){
     }
 }
 
+//Delete function using complicated logic to delete right 
+//nodes and making sure pointers are set right
 int delete(int val,NODE **root){
     NODE *temp;
     NODE *garb;
@@ -228,6 +238,7 @@ int delete(int val,NODE **root){
     }
 }
 
+//Cycles insert() with random values
 int create(int val,NODE **root){
     int number;
     srand(time(0));
@@ -256,7 +267,7 @@ void main(){
     double cpu_time;
     top_root = &root;
 
-    printf("Select your operation - s = search, c = create, i = insert, d = delete, p = print, q = quit: ");
+    printf("Select your operation - (s)earch, (c)reate, (i)nsert, (d)elete, (p)rint, (q)uit: ");
     scanf("%c",&input);
 
     while(input != 'q'){
@@ -279,8 +290,8 @@ void main(){
             end = clock();
             cpu_time = (double)(end - start)/CLOCKS_PER_SEC;
             printf("Time taken: %lf sec.\n",cpu_time);
-            printf("Height of root is: %d\n",height(root));
-            printf("Balance of root is: %d\n",balance(root));
+            printf("get_height of root is: %d\n",get_height(root));
+            printf("get_balace of root is: %d\n",get_balace(root));
             break;
         case 'd':
             printf("Value you wish to delete: ");
@@ -298,7 +309,7 @@ void main(){
         default:
             break;
         }
-        printf("Select your operation - s = search, c = create, i = insert, d = delete, p = print, q = quit: ");
+        printf("Select your operation - (s)earch, (c)reate, (i)nsert, (d)elete, (p)rint, (q)uit: ");
         scanf(" %c",&input);
     }
     printf("\nQuitting...\n");
