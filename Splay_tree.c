@@ -1,4 +1,4 @@
-//RedBlack tree
+//Splay tree
 //|-meTju-|
 
 //Printing any output to terminal slows code significantly, do not use printf with //X if you want much better performance 
@@ -8,13 +8,13 @@
 
 typedef struct node{
     int value;
-    struct node *left;
-    struct node *right;
-    struct node *parent;
+    struct node *left, *right, *parent;
 }NODE;
 
+//Global variable with root pointer
 NODE **true_root = NULL;
 
+//Function to find max value from left subtree when using join()
 NODE *max_left(NODE *root){
     while(root->right != NULL){
         root = root->right;
@@ -22,6 +22,7 @@ NODE *max_left(NODE *root){
     return root;
 }
 
+//Rotation functions
 void left_rotate(NODE *root){
     NODE* temp;
     temp = root->right;
@@ -66,6 +67,8 @@ void right_rotate(NODE *root){
     root->parent = temp;
 }
 
+//Splaying function that takes param NODE *root and makes it 
+//root of tree using rotations and logic
 void splay(NODE *root){
     while(root->parent != NULL){
         if(root->parent->parent == NULL){
@@ -90,35 +93,42 @@ void splay(NODE *root){
     }
 }
 
-NODE *split(NODE *root,NODE **y,NODE **x){
+//Split function that splits tree into two subtrees
+//and returns them to delete()
+void split(NODE *root,NODE **y,NODE **x){
     NODE *sub_left,*sub_right;
-    splay(root);
+    splay(root);    //Splaying node with value that we want to delete
     if(root->right != NULL){
         sub_right = root->right;
         sub_right->parent = NULL;
     }else{
         sub_right = NULL;
     }
-    sub_left = root;
-    sub_left->right = NULL;
-    root = NULL;
+    if(root->left != NULL){
+        sub_left = root->left;
+        sub_left->parent = NULL;
+    }else{
+        sub_left = NULL;
+    }
+    root->right = NULL;
+    root->left = NULL;
     *y = sub_left;
     *x = sub_right;
 }
 
+//Returns one tree that is made of left and right subtrees
 NODE *join(NODE *sub_left,NODE *sub_right){
-    NODE *temp;
     NODE *x;
     if(sub_left == NULL){
-        *true_root = sub_right;
+        return sub_right;
     }
     if(sub_right == NULL){
-        *true_root = sub_left;
+        return sub_left;
     }
     x = max_left(sub_left);
     splay(x);
-    x->right = temp;
-    temp->parent = x;
+    x->right = sub_right;
+    sub_right->parent = x;
     return x;
 }
 
@@ -164,7 +174,7 @@ int insert(int val,NODE **root,NODE *par){
 
     temp = *root;
     if(val == temp->value){
-        printf("Node already exist\n"); //X
+        //printf("Node already exist\n"); //X
         return 0;
     }
     if(val < temp->value){
@@ -175,25 +185,30 @@ int insert(int val,NODE **root,NODE *par){
     }
 }
 
-//WIP, NOT WORKING YET
 int delete(int val,NODE **root){
     NODE *sub_left, *sub_right, *temp;
     temp = *root;
-    split(temp,&sub_left,&sub_right); 
-    if(sub_left != NULL){
-        sub_left->left->parent = NULL;
-        free(sub_left->left);
-        sub_left->left = NULL;
+
+    while(val != temp->value){
+        if(val < temp->value){
+             temp = temp->left;
+        }else{
+            temp = temp->right;
+        }
     }
-    *true_root = join(sub_left->left,sub_right);
+
+    split(temp,&sub_left,&sub_right);       //Passing temp to split and making it root
+    free(temp);     //Dealocating temp      //and then isolating it
+    *true_root = join(sub_left,sub_right);  //Making joined subtrees one root
 }
 
+//Cycles insert() with random values
 int create(int val,NODE **root){
     int number;
     srand(time(0));
     for(int i = 0;i < val;i++){
         number = rand() % val + 1;
-        printf("Creating node with number.. %d\n",number); //X
+        //printf("Creating node with number.. %d\n",number); //X
         insert(number,root,NULL);
     }
 }
@@ -217,7 +232,7 @@ void main(){
     double cpu_time;
     true_root = &root;
 
-    printf("Select your operation - s = search, c = create, i = insert, d = delete, p = print, q = quit: ");
+    printf("Select your operation - (s)earch, (c)reate, (i)nsert, (d)elete, (p)rint, (q)uit: ");
     scanf("%c",&input);
 
     while(input != 'q'){
@@ -256,7 +271,7 @@ void main(){
         default:
             break;
         }
-        printf("Select your operation - s = search, c = create, i = insert, d = delete, p = print, q = quit: ");
+        printf("Select your operation - (s)earch, (c)reate, (i)nsert, (d)elete, (p)rint, (q)uit: ");
         scanf(" %c",&input);
     }
     printf("\nQuitting...\n");
