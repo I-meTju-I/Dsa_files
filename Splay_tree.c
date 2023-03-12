@@ -13,7 +13,14 @@ typedef struct node{
     struct node *parent;
 }NODE;
 
-NODE **top_root = NULL;
+NODE **true_root = NULL;
+
+NODE *max_left(NODE *root){
+    while(root->right != NULL){
+        root = root->right;
+    }
+    return root;
+}
 
 void left_rotate(NODE *root){
     NODE* temp;
@@ -25,7 +32,7 @@ void left_rotate(NODE *root){
         root->right = NULL;
     }
     if(root->parent == NULL){
-        *top_root = temp;
+        *true_root = temp;
         temp->parent = NULL;
     }else if(root == root->parent->left){
         root->parent->left = temp;
@@ -47,7 +54,7 @@ void right_rotate(NODE *root){
         root->left = NULL;
     }
     if(root->parent == NULL){
-        *top_root = temp;
+        *true_root = temp;
         temp->parent = NULL;
     }else if(root == root->parent->left){
         root->parent->left = temp;
@@ -81,6 +88,38 @@ void splay(NODE *root){
             left_rotate(root->parent);
         }
     }
+}
+
+NODE *split(NODE *root,NODE **y,NODE **x){
+    NODE *sub_left,*sub_right;
+    splay(root);
+    if(root->right != NULL){
+        sub_right = root->right;
+        sub_right->parent = NULL;
+    }else{
+        sub_right = NULL;
+    }
+    sub_left = root;
+    sub_left->right = NULL;
+    root = NULL;
+    *y = sub_left;
+    *x = sub_right;
+}
+
+NODE *join(NODE *sub_left,NODE *sub_right){
+    NODE *temp;
+    NODE *x;
+    if(sub_left == NULL){
+        *true_root = sub_right;
+    }
+    if(sub_right == NULL){
+        *true_root = sub_left;
+    }
+    x = max_left(sub_left);
+    splay(x);
+    x->right = temp;
+    temp->parent = x;
+    return x;
 }
 
 int search(int val,NODE **root){
@@ -136,66 +175,17 @@ int insert(int val,NODE **root,NODE *par){
     }
 }
 
+//WIP, NOT WORKING YET
 int delete(int val,NODE **root){
-    NODE *temp;
-    NODE *garb;
-    int temp_val;
-
+    NODE *sub_left, *sub_right, *temp;
     temp = *root;
-    if(temp == NULL){
-        printf("No node with value [%d] is in tree\n",val);
-        return 0;
-    }else if(temp->value == val){
-        //Case 1
-        if(temp->right == NULL && temp->left == NULL){
-            if(temp->parent == NULL){
-                *root = NULL;
-            }else if(temp->parent->left == temp){
-                temp->parent->left = NULL;
-            }else if(temp->parent->right == temp){
-                temp->parent->right = NULL;
-            }
-            free(temp);
-            return 1;
-        //Case 2
-        }else if(temp->right != NULL && temp->left == NULL){
-            garb = temp->right;
-            if(temp->parent == NULL){
-                *root = temp->right;
-                temp->right->parent = NULL;
-            }else if(temp->parent->left == temp){
-                temp->parent->left = garb;
-            }else if(temp->parent->right == temp){
-                temp->parent->right = garb;
-            }
-            free(temp);
-            return 1;
-        }else if(temp->right == NULL && temp->left != NULL){
-            garb = temp->left;
-            if(temp->parent == NULL){
-                *root = temp->left;
-                temp->left->parent = NULL;
-            }else if(temp->parent->left == temp){
-                temp->parent->left = garb;
-            }else if(temp->parent->right == temp){
-                temp->parent->right = garb;
-            }
-            free(temp);
-            return 1;
-        //Case 3
-        }else{
-            delete(temp_val,&temp);
-            temp->value = temp_val;
-            return 1;
-        }
+    split(temp,&sub_left,&sub_right); 
+    if(sub_left != NULL){
+        sub_left->left->parent = NULL;
+        free(sub_left->left);
+        sub_left->left = NULL;
     }
-
-    if(val < temp->value){
-        delete(val,&temp->left);
-    }
-    if(val > temp->value){
-        delete(val,&temp->right);
-    }
+    *true_root = join(sub_left->left,sub_right);
 }
 
 int create(int val,NODE **root){
@@ -225,7 +215,7 @@ void main(){
     char input;
     clock_t start,end;
     double cpu_time;
-    top_root = &root;
+    true_root = &root;
 
     printf("Select your operation - s = search, c = create, i = insert, d = delete, p = print, q = quit: ");
     scanf("%c",&input);
