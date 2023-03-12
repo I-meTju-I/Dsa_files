@@ -13,7 +13,7 @@ typedef struct node{
     int height;
 }NODE;
 
-NODE **top_root = NULL;
+NODE **true_root = NULL;
 
 int min_right(NODE *root){
     NODE* temp;
@@ -48,7 +48,7 @@ void left_rotate(NODE *root){
         root->right = NULL;
     }
     if(root->parent == NULL){
-        *top_root = temp;
+        *true_root = temp;
         temp->parent = NULL;
     }else if(root == root->parent->left){
         root->parent->left = temp;
@@ -73,7 +73,7 @@ void right_rotate(NODE *root){
         root->left = NULL;
     }
     if(root->parent == NULL){
-        *top_root = temp;
+        *true_root = temp;
         temp->parent = NULL;
     }else if(root == root->parent->left){
         root->parent->left = temp;
@@ -253,13 +253,13 @@ void main(){
     char input;
     clock_t start,end;
     double cpu_time;
-    top_root = &root;
+    true_root = &root;
 
     printf("Select your operation - s = search, c = create, i = insert, d = delete, p = print, q = quit: ");
     scanf("%c",&input);
 
     while(input != 'q'){
-        //printf("Current root and top_root: %p %p ",root,*top_root);
+        //printf("Current root and true_root: %p %p ",root,*true_root);
         switch (input){
         case 's':
             printf("Value you wish to search for: ");
