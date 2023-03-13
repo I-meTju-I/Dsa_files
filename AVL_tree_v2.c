@@ -28,10 +28,13 @@ int min_right(NODE *root){
 
 //Gets height of right and left subtrees, than returns max + 1
 int get_height(NODE *root){
+    int left_h, right_h;
     if(root == NULL){
         return 0;
     }
-    return 1 + max(get_height(root->left),get_height(root->right));
+    left_h = get_height(root->left);
+    right_h = get_height(root->right);
+    return 1 + max(left_h,right_h);
 }
 
 //Gets balance by using formula H[left subtree] - H[right subtree]
