@@ -1,6 +1,6 @@
 //AVL tree
 //|-meTju-|
-//This version needs more testing because its slower
+//This version needs more testing because delete is broken
 //Printing any output to terminal slows code significantly, do not use printf with //X if you want much better performance 
 #include<stdio.h>
 #include<stdlib.h>
@@ -28,20 +28,21 @@ int min_right(NODE *root){
 
 //Gets height of right and left subtrees, than returns max + 1
 int get_height(NODE *root){
-    int left_h, right_h;
+    int left_h = 0, right_h = 0;
     if(root == NULL){
         return 0;
     }
-    left_h = get_height(root->left);
-    right_h = get_height(root->right);
+    if(root->left != NULL){
+        left_h = root->left->height;
+    }
+    if(root->right != NULL){
+        right_h = root->right->height;
+    }
     return 1 + max(left_h,right_h);
 }
 
 //Gets balance by using formula H[left subtree] - H[right subtree]
 int get_balance(NODE *root){
-    if (root == NULL){
-        return 0;
-    }
     return get_height(root->left) - get_height(root->right);
 }
 
@@ -101,8 +102,8 @@ void right_rotate(NODE *root){
 //anything outside of it must be rotated
 void rotate(NODE *temp,int val){
     int balance;
-    temp->height = get_height(temp);
     balance = get_balance(temp);
+    temp->height = get_height(temp);
 
     if(balance > 1){
         if(val < temp->left->value){
@@ -166,11 +167,9 @@ int insert(int val,NODE **root,NODE *par){
     }
     if(val < temp->value){
         insert(val,&temp->left,temp);
-        return 1;
     }
     if(val > temp->value){
         insert(val,&temp->right,temp);
-        return 1;
     }
     rotate(temp,val);
     return 1;
@@ -235,11 +234,9 @@ int delete(int val,NODE **root){
 
     if(val < temp->value){
         delete(val,&temp->left);
-        return 1;
     }
     if(val > temp->value){
         delete(val,&temp->right);
-        return 1;
     }
     rotate(temp,val);
     return 1;

@@ -1,6 +1,5 @@
 //AVL tree
 //|-meTju-|
-//This version needs more testing because its still slow and unreliable
 //Printing any output to terminal slows code significantly, do not use printf with //X if you want much better performance 
 #include<stdio.h>
 #include<stdlib.h>
@@ -8,7 +7,7 @@
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 
 typedef struct node{
-    int value;
+    int value, height;    //Added height, instead of computing it everytime
     struct node *left, *right, *parent;
 }NODE;
 
@@ -27,17 +26,21 @@ int min_right(NODE *root){
 
 //Gets height of right and left subtrees, than returns max + 1
 int get_height(NODE *root){
-    int left_h, right_h;
+    int left_h = 0, right_h = 0;
     if(root == NULL){
         return 0;
     }
-    left_h = get_height(root->left);
-    right_h = get_height(root->right);
+    if(root->left != NULL){
+        left_h = root->left->height;
+    }
+    if(root->right != NULL){
+        right_h = root->right->height;
+    }
     return 1 + max(left_h,right_h);
 }
 
 //Gets balance by using formula H[left subtree] - H[right subtree]
-int get_balace(NODE *root){
+int get_balance(NODE *root){
     return get_height(root->left) - get_height(root->right);
 }
 
@@ -62,6 +65,9 @@ void left_rotate(NODE *root){
     temp->parent = root->parent;
     temp->left = root;
     root->parent = temp;
+
+    root->height = get_height(root);
+    temp->height = get_height(temp);
 }
 
 void right_rotate(NODE *root){
@@ -84,6 +90,9 @@ void right_rotate(NODE *root){
     temp->parent = root->parent;
     temp->right = root;
     root->parent = temp;
+
+    root->height = get_height(root);
+    temp->height = get_height(temp);
 }
 
 //Function that is making rotations by using logic
@@ -91,18 +100,22 @@ void right_rotate(NODE *root){
 //anything outside of it must be rotated
 void rotation(NODE *root){
     NODE* temp;
-    int balance = get_balace(root);
+    int balance = get_balance(root);
+    int l_balance, r_balance;
+    root->height = get_height(root);
     if(balance > 1){
-        if(get_balace(root->left) >= 1){
+        l_balance = get_balance(root->left);
+        if(l_balance >= 1){
             right_rotate(root);
-        }else if(get_balace(root->left) <= -1){
+        }else if(l_balance <= -1){
             left_rotate(root->left);
             right_rotate(root);
         }
     }else if(balance < -1){
-        if(get_balace(root->right) <= -1){
+        r_balance = get_balance(root->right);
+        if(r_balance <= -1){
             left_rotate(root);
-        }else if(get_balace(root->right) >= 1){
+        }else if(r_balance >= 1){
             right_rotate(root->right);
             left_rotate(root);
         }
@@ -152,7 +165,7 @@ int insert(int val,NODE **root,NODE *par){
         new->left = NULL;
         new->right = NULL;
         new->parent = par;
-
+        new->height = 1;
 
         *root = new;
         rotate(*root);
@@ -183,11 +196,12 @@ int delete(int val,NODE **root){
     int temp_val;
 
     temp = *root;
-    parent = temp->parent;
     if(temp == NULL){
         printf("No node with value [%d] is in tree\n",val);
         return 0;
-    }else if(temp->value == val){
+    }
+    parent = temp->parent;
+    if(temp->value == val){
         //Case 1
         if(temp->right == NULL && temp->left == NULL){
             if(temp->parent == NULL){
@@ -232,7 +246,6 @@ int delete(int val,NODE **root){
             temp_val = min_right(temp);
             delete(temp_val,&temp);
             temp->value = temp_val;
-            rotate(parent);
             return 1;
         }
     }
@@ -300,7 +313,7 @@ void main(){
             cpu_time = (double)(end - start)/CLOCKS_PER_SEC;
             printf("Time taken: %lf sec.\n",cpu_time);
             printf("Height of root is: %d\n",get_height(root));
-            printf("Balance of root is: %d\n",get_balace(root));
+            printf("Balance of root is: %d\n",get_balance(root));
             break;
         case 'd':
             printf("Value you wish to delete: ");
