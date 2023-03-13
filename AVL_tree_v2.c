@@ -135,9 +135,11 @@ int search(int val,NODE *root){
     }
     if(val < temp->value){
         search(val,temp->left);
+        return 1;
     }
     if(val > temp->value){
         search(val,temp->right);
+        return 1;
     }
 }
 
@@ -164,12 +166,14 @@ int insert(int val,NODE **root,NODE *par){
     }
     if(val < temp->value){
         insert(val,&temp->left,temp);
+        return 1;
     }
     if(val > temp->value){
         insert(val,&temp->right,temp);
+        return 1;
     }
-
     rotate(temp,val);
+    return 1;
 }
 
 //Delete function using complicated logic to delete right 
@@ -231,12 +235,14 @@ int delete(int val,NODE **root){
 
     if(val < temp->value){
         delete(val,&temp->left);
+        return 1;
     }
     if(val > temp->value){
         delete(val,&temp->right);
+        return 1;
     }
-
     rotate(temp,val);
+    return 1;
 }
 
 //Cycles insert() with random values

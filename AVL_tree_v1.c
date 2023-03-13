@@ -36,16 +36,6 @@ int get_height(NODE *root){
     return 1 + max(left_h,right_h);
 }
 
-int get_height(NODE *root){
-    int left_h, right_h;
-    if(root == NULL){
-        return 0;
-    }
-    left_h = get_height(root->left);
-    right_h = get_height(root->right);
-    return 1 + max(left_h,right_h);
-}
-
 //Gets balance by using formula H[left subtree] - H[right subtree]
 int get_balace(NODE *root){
     return get_height(root->left) - get_height(root->right);
@@ -144,9 +134,11 @@ int search(int val,NODE *root){
     }
     if(val < temp->value){
         search(val,temp->left);
+        return 1;
     }
     if(val > temp->value){
         search(val,temp->right);
+        return 1;
     }
 }
 
@@ -174,9 +166,11 @@ int insert(int val,NODE **root,NODE *par){
     }
     if(val < temp->value){
         insert(val,&temp->left,temp);
+        return 1;
     }
     if(val > temp->value){
         insert(val,&temp->right,temp);
+        return 1;
     }
 }
 
@@ -245,9 +239,11 @@ int delete(int val,NODE **root){
 
     if(val < temp->value){
         delete(val,&temp->left);
+        return 1;
     }
     if(val > temp->value){
         delete(val,&temp->right);
+        return 1;
     }
 }
 
