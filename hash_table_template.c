@@ -17,14 +17,14 @@ typedef struct table{
 }HASH_TABLE;
 
 //Temporary hash function
-long hash(char *key,int size){
-    long hash = 5381;
+unsigned long hash(char *key,int size){
+    unsigned long hash = 5381;
     int c;
 
     while (c = *key++){
         hash = ((hash << 5) + hash) + c;
     }
-    return hash % size;
+    return (hash % size);
 }
 
 //Allocates memory for ITEM and fills it with args
@@ -55,22 +55,36 @@ HASH_TABLE create_hashtable(int size){
     return new;
 }
 
+void resize(HASH_TABLE *table){
+    if((double)table->count / table->size >= 0.75){
+        table->array = (ITEM **)realloc(table->array,2 * table->size * sizeof(ITEM *));
+        table->size *= 2;
+    }else if((double)table->count / table->size <= 0.35){
+        table->array = (ITEM **)realloc(table->array,2 / table->size * sizeof(ITEM *));
+        table->size /= 2;
+    }
+}
 //Basic insert
 void insert(HASH_TABLE *table,char *key,char *name){
-    int index;
+    unsigned long index;
     ITEM *new;
     
     index = hash(key,table->size);
-    new = create_item(key,name);
 
-    table->array[index] = new;
-    table->count += 1;
+    if(table->array[index] == NULL){
+        new = create_item(key,name);
+        table->array[index] = new;
+        table->count += 1;
+        resize(table);
+    }else{
+        printf("Space already occupied\n");
+    }
 }
 
 //Basic search
 void search(HASH_TABLE table){
     char key[30];
-    int index;
+    unsigned long index;
     printf("Key that you would like to search for: ");
     scanf("%s",key);
     index = hash(key,table.size);
@@ -84,7 +98,7 @@ void search(HASH_TABLE table){
 //Basic delete
 void delete(HASH_TABLE *table){
     char key[30];
-    int index;
+    unsigned long index;
     printf("Key that you would like to delete: ");
     scanf("%s",key);
     index = hash(key,table->size);
@@ -98,6 +112,7 @@ void delete(HASH_TABLE *table){
         table->array[index] = NULL;
         printf("Deleted key with value [%s] in hash table\n",key);
     }
+    resize(table);
 }
 
 //Prints not NULL indexes in hash table
@@ -137,12 +152,12 @@ void create(HASH_TABLE *table,int val){
 
 void main(){
     char input;
-    char *key, *name;
+    char key[17], name[17];
     HASH_TABLE table;
     clock_t start,end;
     double cpu_time;
     int val;
-    table = create_hashtable(5);
+    table = create_hashtable(2);
     
     printf("Select your operation - (s)earch, (c)reate, (i)nsert, (d)elete, (p)rint, (q)uit: ");
     scanf(" %c",&input);
@@ -170,9 +185,10 @@ void main(){
             cpu_time = (double)(end - start)/CLOCKS_PER_SEC;
             printf("Time taken: %lf sec.\n",cpu_time);
             break;
-            break;
         case 'p':
             print_table(table);
+        case 'b':
+            printf("Table size: %d\nTable count: %d\nLoad factor: %.2f\n",table.size,table.count,(double)table.count / table.size);
         default:
             break;
         }
