@@ -55,13 +55,43 @@ HASH_TABLE create_hashtable(int size){
     return new;
 }
 
+//Rehashes elements from smaller table into bigger one
+void rehash_up(HASH_TABLE *table,ITEM **new_array,int size){
+    unsigned long index;
+    for(int i = 0; i < size; i++){
+        if(table->array[i] != NULL){
+            index = hash(table->array[i]->key,table->size);
+            new_array[index] = table->array[i];
+            table->array[i] = NULL;
+        }
+        free(table->array[i]);
+    }
+    free(table->array);
+    table->array = new_array;
+}
+
+//Rehashes elements from larger table into smaller one
+void rehash_down(HASH_TABLE *table,int size){
+    unsigned long index;
+    for(int i = 0; i < size; i++){
+        if(table->array[i] != NULL){
+            index = hash(table->array[i]->key,table->size);
+            table->array[index] = table->array[i];
+            table->array[i] = NULL;
+        }
+    }
+}
+
 void resize(HASH_TABLE *table){
     if((double)table->count / table->size >= 0.75){
-        table->array = (ITEM **)realloc(table->array,2 * table->size * sizeof(ITEM *));
+        ITEM **new_array;
         table->size *= 2;
+        new_array = (ITEM **)calloc(table->size,sizeof(ITEM *));
+        rehash_up(table,new_array,table->size/2);
     }else if((double)table->count / table->size <= 0.35){
-        table->array = (ITEM **)realloc(table->array,2 / table->size * sizeof(ITEM *));
         table->size /= 2;
+        rehash_down(table,table->size*2);
+        table->array = (ITEM **)realloc(table->array,2 / table->size * sizeof(ITEM *));
     }
 }
 //Basic insert
@@ -140,12 +170,12 @@ void rand_string(char string[],int len){
 //Cycles through insert() val times with random keys and names
 void create(HASH_TABLE *table,int val){
     char key[17];
-    char name[17];
+    char name[9];
     srand(time(0));
 
     for(int i = 0;i < val;i++){
         rand_string(key,16);
-        rand_string(name,16);
+        rand_string(name,8);
         insert(table,key,name);
     }
 }
