@@ -141,6 +141,7 @@ void delete(HASH_TABLE *table){
         free(table->array[index]);
         table->array[index] = NULL;
         printf("Deleted key with value [%s] in hash table\n",key);
+        table->count -= 1;
     }
     resize(table);
 }
